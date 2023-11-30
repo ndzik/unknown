@@ -3,19 +3,23 @@
 
 
 int main() {
-    Node* n1 = new_node(NULL, 0);
-    printf("node %p\n", (void*)n1);
+    Node *n1 = new_empty_node();
+    Node *n2 = new_empty_node();
+    Node *n3 = new_empty_node();
+    Node *n4 = new_empty_node();
+    GRAPH_CHECK_SUCCESS(new_node(NULL, 0, n1), "error creating new node");
+    GRAPH_CHECK_SUCCESS(new_node(new_neighbors((const Node**)(Node*[]){n1}, 1), 1, n2), "error creating new node");
+    GRAPH_CHECK_SUCCESS(new_node(new_neighbors((const Node**)(Node*[]){n1}, 1), 1, n3), "error creating new node");
+    GRAPH_CHECK_SUCCESS(new_node(new_neighbors((const Node**)(Node*[]){n1, n2, n3}, 3), 3, n4), "error creating new node");
+
+
+    printf("node %p\n", (void*)&n1);
     print_node(n1);
-    Node* n2 = new_node((Node**)(Node*[]){n1}, 1);
-    Node* n3 = new_node((Node**)(Node*[]){n1}, 1);
-    Node* n4 = new_node((Node**)(Node*[]){n2,n3}, 2);
-    printf("node %p\n", (void*)n1);
-    print_node(n1);
-    printf("node %p\n", (void*)n2);
+    printf("node %p\n", (void*)&n2);
     print_node(n2);
-    printf("node %p\n", (void*)n3);
+    printf("node %p\n", (void*)&n3);
     print_node(n3);
-    printf("node %p\n", (void*)n4);
+    printf("node %p\n", (void*)&n4);
     print_node(n4);
     return 0;
 }
