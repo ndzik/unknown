@@ -16,6 +16,7 @@ typedef enum {
   GRAPH_SUCCESS,
   GRAPH_INVALID_ARG,
   GRAPH_INVALID_MEMORY_RESULT,
+  GRAPH_MALLOC_FAILED,
 } GraphError;
 
 // Macro to check for `GRAPH_SUCCESS`, printing the given error message and
@@ -32,6 +33,9 @@ Node *new_empty_node() { return malloc(sizeof(Node)); }
 // Returns the memory address where the given array of neighbors are stored.
 Node **new_neighbors(const Node **neighbors, int num_of_neighbors) {
   Node **moved_neighbors = malloc(num_of_neighbors * sizeof(Node *));
+  if (moved_neighbors == NULL) {
+    return NULL;
+  }
   for (int o = 0; o < num_of_neighbors; o++) {
     moved_neighbors[o] = (Node *)neighbors[o];
   }
@@ -63,8 +67,12 @@ GraphError new_node(Node **neighbors, int num_of_neighbors, Node *node_result) {
   node_result->neighbors = (struct Node **)neighbors;
   node_result->num_of_neighbors = num_of_neighbors;
 
-  if (neighbors == NULL || num_of_neighbors == 0) {
+  if (neighbors == NULL && num_of_neighbors == 0) {
     return GRAPH_SUCCESS;
+  }
+
+  if (neighbors == NULL && num_of_neighbors > 0) {
+    return GRAPH_INVALID_ARG;
   }
 
   // Iterate through all neighbor nodes and add this node to their list of
@@ -74,6 +82,10 @@ GraphError new_node(Node **neighbors, int num_of_neighbors, Node *node_result) {
     // Allocate a new array which allows to store all neighbors.
     Node **new_neighbors =
         malloc((neighbor->num_of_neighbors + 1) * sizeof(Node));
+
+    if (new_neighbors == NULL) {
+      return GRAPH_MALLOC_FAILED;
+    }
 
     if (neighbor->num_of_neighbors > 0) {
       // Copy all old neighbors to new array and slot the new neighbor as in as
