@@ -27,6 +27,10 @@ typedef enum {
     return error_code;                                                         \
   }
 
+GraphError add_node_to(Node *neighbor, Node *added_node);
+Node **new_neighbors(const Node **neighbors, int num_of_neighbors);
+void print_node(const Node *node);
+
 // Allocates memory for a new node and returns its memory location.
 Node *new_empty_node() { return malloc(sizeof(Node)); }
 
@@ -78,31 +82,8 @@ GraphError new_node(Node **neighbors, int num_of_neighbors, Node *node_result) {
   // Iterate through all neighbor nodes and add this node to their list of
   // neighbors.
   for (int o = 0; o < num_of_neighbors; o++) {
-    Node *neighbor = neighbors[o];
-    // Allocate a new array which allows to store all neighbors.
-    Node **new_neighbors =
-        malloc((neighbor->num_of_neighbors + 1) * sizeof(Node));
-
-    if (new_neighbors == NULL) {
-      return GRAPH_MALLOC_FAILED;
-    }
-
-    if (neighbor->num_of_neighbors > 0) {
-      // Copy all old neighbors to new array and slot the new neighbor as in as
-      // its last element.
-      memcpy(new_neighbors, neighbor->neighbors,
-             neighbor->num_of_neighbors * sizeof(Node));
-      // Free old memory. Only possible consistently if user adheres to library
-      // API.
-      free(neighbor->neighbors);
-    }
-
-    // Set last neighbor to be the new allocated node.
-    new_neighbors[neighbor->num_of_neighbors] = node_result;
-    // Reset neighbors to new neighbors.
-    neighbor->neighbors = (struct Node **)new_neighbors;
-    // Increment the number of registered neighbors.
-    neighbor->num_of_neighbors++;
+    GRAPH_CHECK_SUCCESS(add_node_to(neighbors[o], node_result),
+                        "unable to add node as neighbor");
   }
 
   return GRAPH_SUCCESS;
@@ -117,4 +98,33 @@ void print_node(const Node *node) {
     }
     printf(" ]\n");
   }
+}
+
+GraphError add_node_to(Node *neighbor, Node *added_node) {
+  // Allocate a new array which allows to store all neighbors.
+  Node **new_neighbors =
+      malloc((neighbor->num_of_neighbors + 1) * sizeof(Node));
+
+  if (new_neighbors == NULL) {
+    return GRAPH_MALLOC_FAILED;
+  }
+
+  if (neighbor->num_of_neighbors > 0) {
+    // Copy all old neighbors to new array and slot the new neighbor as in as
+    // its last element.
+    memcpy(new_neighbors, neighbor->neighbors,
+           neighbor->num_of_neighbors * sizeof(Node));
+    // Free old memory. Only possible consistently if user adheres to library
+    // API.
+    free(neighbor->neighbors);
+  }
+
+  // Set last neighbor to be the new allocated node.
+  new_neighbors[neighbor->num_of_neighbors] = added_node;
+  // Reset neighbors to new neighbors.
+  neighbor->neighbors = (struct Node **)new_neighbors;
+  // Increment the number of registered neighbors.
+  neighbor->num_of_neighbors++;
+
+  return GRAPH_SUCCESS;
 }
