@@ -1,5 +1,12 @@
 #include "btree.h"
 
+static BTreeError init_node(Node *node, unsigned int max_num_childs);
+static BTreeError insert_node(Node *node, unsigned int t, unsigned int key,
+                              void *value);
+static BTreeError insert_key_value(BTree *tree, unsigned int key, void *value);
+static BTreeError insert_key_sorted(Node *node, unsigned int key,
+                                    unsigned int *tgt_idx);
+
 int show_btree_error(BTreeError error_code, char *restrict target) {
   switch (error_code) {
   case BTREE_SUCCESS:

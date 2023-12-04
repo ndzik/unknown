@@ -27,7 +27,7 @@ typedef enum {
     return error_code;                                                         \
   }
 
+GraphError new_node(Node **neighbors, int num_of_neighbors, Node *node_result);
 Node *new_empty_node();
-static GraphError add_node_to(Node *neighbor, Node *added_node);
 Node **new_neighbors(const Node **neighbors, int num_of_neighbors);
 void print_node(const Node *node);

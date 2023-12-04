@@ -1,5 +1,7 @@
 #include "graph.h"
 
+static GraphError add_node_to(Node *neighbor, Node *added_node);
+
 // Allocates memory for a new node and returns its memory location.
 Node *new_empty_node() { return malloc(sizeof(Node)); }
 
