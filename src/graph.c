@@ -1,13 +1,20 @@
 #include "graph.h"
+#include "allocator.h"
 
 static GraphError add_node_to(Node *neighbor, Node *added_node);
 
 // Allocates memory for a new node and returns its memory location.
-Node *new_empty_node() { return malloc(sizeof(Node)); }
+Node *new_empty_node(Allocator *allocator) {
+  Node *node = allocator->alloc(allocator, sizeof(Node));
+  node->allocator = allocator;
+  return node;
+}
 
 // Returns the memory address where the given array of neighbors are stored.
-Node **new_neighbors(const Node **neighbors, int num_of_neighbors) {
-  Node **moved_neighbors = malloc(num_of_neighbors * sizeof(Node *));
+Node **new_neighbors(Allocator *allocator, const Node **neighbors,
+                     int num_of_neighbors) {
+  Node **moved_neighbors =
+      allocator->alloc(allocator, num_of_neighbors * sizeof(Node *));
   if (moved_neighbors == NULL) {
     return NULL;
   }
@@ -72,12 +79,13 @@ void print_node(const Node *node) {
 }
 
 static GraphError add_node_to(Node *neighbor, Node *added_node) {
+  Allocator *allocator = neighbor->allocator;
   // Allocate a new array which allows to store all neighbors.
-  Node **new_neighbors =
-      malloc((neighbor->num_of_neighbors + 1) * sizeof(Node));
+  Node **new_neighbors = allocator->alloc(
+      allocator, (neighbor->num_of_neighbors + 1) * sizeof(Node));
 
   if (new_neighbors == NULL) {
-    return GRAPH_MALLOC_FAILED;
+    return GRAPH_ALLOC_FAILED;
   }
 
   if (neighbor->num_of_neighbors > 0) {
@@ -85,9 +93,6 @@ static GraphError add_node_to(Node *neighbor, Node *added_node) {
     // its last element.
     memcpy(new_neighbors, neighbor->neighbors,
            neighbor->num_of_neighbors * sizeof(Node));
-    // Free old memory. Only possible consistently if user adheres to library
-    // API.
-    free(neighbor->neighbors);
   }
 
   // Set last neighbor to be the new allocated node.
