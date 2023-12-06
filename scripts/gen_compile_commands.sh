@@ -11,5 +11,5 @@ function is_installed() {
 is_installed bear
 
 # Generate compile_commands.json
+make clean
 bear -- make build
-
