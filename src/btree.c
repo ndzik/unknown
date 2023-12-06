@@ -32,7 +32,6 @@ BTree *new_btree_root(unsigned int max_num_childs) {
   return btree;
 }
 
-
 // Inserts arbitrary data with the given key into the given tree. Adheres to
 // the balancing rules using tree->max_num_childs;
 BTreeError insert_key_value(BTree *tree, unsigned int key, void *value) {
