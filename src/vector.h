@@ -4,7 +4,7 @@
 #include <string.h>
 
 typedef void *Vector;
-typedef void *(MapFunction)(void *elem);
+typedef void(MapFunction)(void *elem, void *result);
 
 unsigned int base_offset(Vector vec);
 unsigned int v_length(Vector vec);
@@ -38,7 +38,7 @@ Vector make_vector(VectorParams params) {
   if (params.capacity != 0)
     capacity = params.capacity;
 
-  // Required.
+  // TODO: Better signal required.
   if (params.stride == 0)
     exit(420);
   unsigned int stride = params.stride;
@@ -51,10 +51,11 @@ Vector make_vector(VectorParams params) {
   return vec;
 }
 
-Vector v_resize(Vector vec) {
+Vector v_increase_size(Vector vec) {
   unsigned int capacity = v_capacity(vec);
+  unsigned int stride = v_stride(vec);
   v_set_capacity(vec, capacity * 2);
-  return realloc(vec, 2 * capacity);
+  return realloc(vec, 2 * capacity * stride);
 }
 
 Vector v_append(Vector vec, void *value) {
@@ -62,7 +63,7 @@ Vector v_append(Vector vec, void *value) {
   VectorParams params = v_params(vec);
 
   if (params.length == params.capacity) {
-    vec = v_resize(vec);
+    vec = v_increase_size(vec);
   }
 
   memcpy(vec + offset + params.stride * params.length, value, params.stride);
@@ -83,26 +84,36 @@ void v_drop(Vector vec, void *result) {
 
 Vector v_map(Vector vec, MapFunction fun, unsigned int stride) {
   VectorParams params = {
-      .length = v_length(vec),
+      .length = 0,
       .capacity = v_capacity(vec),
       .stride = stride,
   };
   Vector mapped_vec = make_vector(params);
-  for (int o = 0; o < params.length; ++o) {
-    mapped_vec = v_append(mapped_vec, fun(v_at(vec, o)));
+  unsigned int length = v_length(vec);
+  char buf[stride];
+  for (int o = 0; o < length; ++o) {
+    fun(v_at(vec, o), buf);
+    mapped_vec = v_append(mapped_vec, buf);
   }
   return mapped_vec;
 }
 
 Vector v_map_m(Vector vec, MapFunction fun, unsigned int new_stride) {
-  unsigned int new_length = new_stride * v_length(vec);
-  if (new_length > v_capacity(vec)) {
-    vec = v_resize(vec);
+  unsigned int length = v_length(vec);
+  unsigned int old_byte_length = length * v_stride(vec);
+  unsigned int new_byte_length = length * new_stride;
+  if (new_byte_length > old_byte_length) {
+    // Make sure we always have enough memory available to fit all elements
+    // when a vector is reaching full capacity.
+    vec = realloc(vec, v_capacity(vec) * new_stride);
   }
   if (v_stride(vec) < new_stride) {
-    return v_map_from_back(vec, fun, new_stride);
+    vec = v_map_from_back(vec, fun, new_stride);
+  } else {
+    vec = v_map_from_front(vec, fun, new_stride);
   }
-  return v_map_from_front(vec, fun, new_stride);
+  ((VectorParams *)vec)->stride = new_stride;
+  return vec;
 }
 
 static Vector v_map_from_back(Vector vec, MapFunction fun,
@@ -110,11 +121,8 @@ static Vector v_map_from_back(Vector vec, MapFunction fun,
   unsigned int length = v_length(vec);
   unsigned int offset = base_offset(vec);
   for (int o = (length - 1); o >= 0; --o) {
-    // TODO: This does not work since we might catch up with the real data
-    // while iterating.
-    memcpy(vec + offset + o * stride, fun(v_at(vec, o)), stride);
+    fun(v_at(vec, o), vec + offset + o * stride);
   }
-  ((VectorParams *)vec)->stride = stride;
   return vec;
 }
 
@@ -123,9 +131,8 @@ static Vector v_map_from_front(Vector vec, MapFunction fun,
   unsigned int offset = base_offset(vec);
   unsigned int length = v_length(vec);
   for (int o = 0; o < length; ++o) {
-    memcpy(vec + offset + o * stride, fun(v_at(vec, o)), stride);
+    fun(v_at(vec, o), vec + offset + o * stride);
   }
-  ((VectorParams *)vec)->stride = stride;
   return vec;
 }
 
