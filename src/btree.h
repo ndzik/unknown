@@ -1,6 +1,7 @@
 #ifndef BTREE_H
 #define BTREE_H
 
+#include "vector.h"
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,13 +21,11 @@
 // * an array of keys
 // * a parallel array of data-references for each key
 typedef struct {
-  struct Node **children;
-  int num_of_children;
+  Vector children;
 
   // Data and Keys are parallel arrays.
-  void **data;
-  unsigned int *keys;
-  unsigned int num_of_keys;
+  Vector data;
+  Vector keys;
 } Node;
 
 typedef struct {
