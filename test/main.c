@@ -7,6 +7,11 @@ typedef enum {
   SUCCESS,
 } TEST_RESULT;
 
+typedef struct TestCase {
+  TEST_CASE test_fun;
+  const char *name;
+} TestCase;
+
 typedef struct VectorTestStruct {
   unsigned int a;
   unsigned int b;
@@ -116,16 +121,17 @@ int vector_test() {
 }
 
 int main() {
-  TEST_CASE test_cases[] = {
-      vector_test,
-      NULL, // Sentinel value, always last element.
+  TestCase test_cases[] = {
+      {.test_fun = vector_test, .name = "VECTOR_TEST"},
+      {0}, // Sentinel value, always last element.
   };
-  TEST_CASE test_case = test_cases[0];
+  TestCase test_case = test_cases[0];
   printf("unknown-test-running...\n");
-  for (int o = 1; test_case != NULL; ++o) {
-    if (!test_case()) {
-      printf("%d failed!\n", o);
+  for (int o = 1; test_case.test_fun != NULL; ++o) {
+    if (!test_case.test_fun()) {
+      printf("%s failed!\n", test_case.name);
     }
+    printf("%s success!\n", test_case.name);
     test_case = test_cases[o];
   }
   printf("unknown-test-finished...\n");
