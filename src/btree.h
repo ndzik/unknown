@@ -1,4 +1,5 @@
-#pragma once
+#ifndef BTREE_H
+#define BTREE_H
 
 #include <stddef.h>
 #include <stdio.h>
@@ -50,3 +51,5 @@ BTree *new_btree_root(unsigned int max_num_childs);
     printf("%s: %s", target, error_message);                                   \
     return error_code;                                                         \
   }
+
+#endif // BTREE_H

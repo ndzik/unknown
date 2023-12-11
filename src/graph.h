@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GRAPH_H
+#define GRAPH_H
 
 #include "allocator.h"
 #include <stddef.h>
@@ -40,3 +41,5 @@ Node *new_empty_node(Allocator *allocator);
 Node **new_neighbors(Allocator *allocator, const Node **neighbors,
                      int num_of_neighbors);
 void print_node(const Node *node);
+
+#endif // GRAPH_H

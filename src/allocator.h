@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ALLOCATOR_H
+#define ALLOCATOR_H
 
 // Handles requests for memory allocations and frees.
 typedef struct Allocator {
@@ -24,3 +25,5 @@ typedef struct StackAllocator {
 StackAllocator new_stack_allocator(void *arena, unsigned int arena_size);
 void *stack_alloc(struct Allocator *allocator, unsigned int sz_bytes);
 void stack_free(struct Allocator *allocator);
+
+#endif // ALLOCATOR_H
