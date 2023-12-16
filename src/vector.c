@@ -1,10 +1,19 @@
 #include "vector.h"
+#include "allocator.h"
+
+static HeapAllocator default_allocator = {};
+static Allocator allocator = {
+    .strategy = &default_allocator,
+    .alloc = heap_alloc,
+    .realloc = heap_realloc,
+    .free = heap_free,
+};
 
 static Vector v_map_from_back(Vector vec, MapFunction fun, unsigned int stride);
 static Vector v_map_from_front(Vector vec, MapFunction fun,
                                unsigned int stride);
 
-Vector make_vector(VectorParams params) {
+Vector new_vector(VectorParams params) {
   // Defaults.
   unsigned int length = 0;
   unsigned int capacity = 512;
@@ -19,7 +28,8 @@ Vector make_vector(VectorParams params) {
     exit(420);
   unsigned int stride = params.stride;
 
-  Vector vec = malloc(stride * capacity + sizeof(VectorParams));
+  Vector vec =
+      allocator.alloc(&allocator, stride * capacity + sizeof(VectorParams));
   ((unsigned int *)vec)[0] = length;
   ((unsigned int *)vec)[1] = capacity;
   ((unsigned int *)vec)[2] = stride;
@@ -31,7 +41,7 @@ Vector v_increase_size(Vector vec) {
   unsigned int capacity = v_capacity(vec);
   unsigned int stride = v_stride(vec);
   v_set_capacity(vec, capacity * 2);
-  return realloc(vec, 2 * capacity * stride);
+  return allocator.realloc(&allocator, vec, 2 * capacity * stride);
 }
 
 Vector v_append(Vector vec, void *value) {
@@ -64,7 +74,7 @@ Vector v_map(Vector vec, MapFunction fun, unsigned int stride) {
       .capacity = v_capacity(vec),
       .stride = stride,
   };
-  Vector mapped_vec = make_vector(params);
+  Vector mapped_vec = new_vector(params);
   unsigned int length = v_length(vec);
   char buf[stride];
   for (int o = 0; o < length; ++o) {
@@ -81,7 +91,7 @@ Vector v_map_m(Vector vec, MapFunction fun, unsigned int new_stride) {
   if (new_byte_length > old_byte_length) {
     // Make sure we always have enough memory available to fit all elements
     // when a vector is reaching full capacity.
-    vec = realloc(vec, v_capacity(vec) * new_stride);
+    vec = allocator.realloc(&allocator, vec, v_capacity(vec) * new_stride);
   }
   if (v_stride(vec) < new_stride) {
     vec = v_map_from_back(vec, fun, new_stride);

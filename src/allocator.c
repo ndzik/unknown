@@ -25,3 +25,14 @@ void stack_free(struct Allocator *allocator) {
   StackAllocator *sa = (StackAllocator *)allocator->strategy;
   sa->end = 0;
 }
+
+void *heap_alloc(struct Allocator *allocator, unsigned int sz_bytes) {
+  return malloc(sz_bytes);
+}
+
+void heap_free(struct Allocator *allocator, void *address) { free(address); }
+
+void *heap_realloc(struct Allocator *allocator, void *address,
+                   unsigned int sz_bytes) {
+  return realloc(address, sz_bytes);
+}

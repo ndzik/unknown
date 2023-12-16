@@ -1,20 +1,30 @@
 #include "graph.h"
 #include "allocator.h"
 
+static HeapAllocator default_allocator = {};
+static Allocator allocator = {
+    .strategy = &default_allocator,
+    .alloc = heap_alloc,
+    .realloc = heap_realloc,
+    .free = heap_free,
+};
+
+void graph_set_allocator(Allocator injected_alloc) {
+  allocator = injected_alloc;
+}
+
 static GraphError add_node_to(Node *neighbor, Node *added_node);
 
 // Allocates memory for a new node and returns its memory location.
-Node *new_empty_node(Allocator *allocator) {
-  Node *node = allocator->alloc(allocator, sizeof(Node));
-  node->allocator = allocator;
+Node *new_empty_node() {
+  Node *node = allocator.alloc(&allocator, sizeof(Node));
   return node;
 }
 
 // Returns the memory address where the given array of neighbors are stored.
-Node **new_neighbors(Allocator *allocator, const Node **neighbors,
-                     int num_of_neighbors) {
+Node **new_neighbors(const Node **neighbors, int num_of_neighbors) {
   Node **moved_neighbors =
-      allocator->alloc(allocator, num_of_neighbors * sizeof(Node *));
+      allocator.alloc(&allocator, num_of_neighbors * sizeof(Node *));
   if (moved_neighbors == NULL) {
     return NULL;
   }
@@ -79,10 +89,9 @@ void print_node(const Node *node) {
 }
 
 static GraphError add_node_to(Node *neighbor, Node *added_node) {
-  Allocator *allocator = neighbor->allocator;
   // Allocate a new array which allows to store all neighbors.
-  Node **new_neighbors = allocator->alloc(
-      allocator, (neighbor->num_of_neighbors + 1) * sizeof(Node));
+  Node **new_neighbors = allocator.alloc(
+      &allocator, (neighbor->num_of_neighbors + 1) * sizeof(Node));
 
   if (new_neighbors == NULL) {
     return GRAPH_ALLOC_FAILED;

@@ -44,7 +44,7 @@ int vector_test() {
   VectorParams params = {
       .stride = sizeof(unsigned int),
   };
-  Vector my_vec = make_vector(params);
+  Vector my_vec = new_vector(params);
   ASSERT(v_length(my_vec), 0,
          "initialized vector with malformed length actual: %d expected: %d");
   ASSERT(v_capacity(my_vec), 512,

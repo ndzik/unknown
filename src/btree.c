@@ -1,4 +1,13 @@
 #include "btree.h"
+#include "allocator.h"
+
+static HeapAllocator default_allocator = {};
+static Allocator allocator = {
+    .strategy = &default_allocator,
+    .alloc = heap_alloc,
+    .realloc = heap_realloc,
+    .free = heap_free,
+};
 
 static BTreeError init_node(Node *node, unsigned int max_num_childs);
 static BTreeError insert_into_node(Node *node, unsigned int t, unsigned int key,
@@ -23,7 +32,7 @@ int show_btree_error(BTreeError error_code, char *restrict target) {
 }
 
 BTree *new_btree_root(unsigned int max_num_childs) {
-  BTree *btree = malloc(sizeof(BTree));
+  BTree *btree = allocator.alloc(&allocator, sizeof(BTree));
   btree->max_num_childs = max_num_childs;
   // Initialize Node, already allocated because it is not a pointer member.
   btree->root.children = NULL;
@@ -65,9 +74,9 @@ static BTreeError init_node(Node *node, unsigned int max_num_childs) {
       .stride = sizeof(void *),
       .capacity = max_num_childs - 1,
   };
-  node->children = make_vector(children_params);
-  node->keys = make_vector(keys_params);
-  node->data = make_vector(data_params);
+  node->children = new_vector(children_params);
+  node->keys = new_vector(keys_params);
+  node->data = new_vector(data_params);
   return BTREE_SUCCESS;
 }
 

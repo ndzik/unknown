@@ -12,13 +12,6 @@ typedef struct {
   // List of neighbors.
   struct Node **neighbors;
   int num_of_neighbors;
-
-  // The associated allocator with this graph. Every node has to know about its
-  // allocator to keep a consistent context. Users of this data structure are
-  // required to inject allocator implementations which can manage their
-  // specific needs, e.g. allocators capable of handling concurrent requests
-  // in case of multi-threading.
-  Allocator *allocator;
 } Node;
 
 typedef enum {
@@ -37,9 +30,9 @@ typedef enum {
   }
 
 GraphError new_node(Node **neighbors, int num_of_neighbors, Node *node_result);
-Node *new_empty_node(Allocator *allocator);
-Node **new_neighbors(Allocator *allocator, const Node **neighbors,
-                     int num_of_neighbors);
+Node *new_empty_node();
+Node **new_neighbors(const Node **neighbors, int num_of_neighbors);
 void print_node(const Node *node);
+void graph_set_allocator(Allocator injected_alloc);
 
 #endif // GRAPH_H

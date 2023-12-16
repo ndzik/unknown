@@ -13,7 +13,7 @@ typedef struct VectorParams {
   unsigned int stride;
 } VectorParams;
 
-Vector make_vector(VectorParams params);
+Vector new_vector(VectorParams params);
 Vector v_append(Vector vec, void *value);
 unsigned int base_offset(Vector vec);
 unsigned int v_length(Vector vec);
