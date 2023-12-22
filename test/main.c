@@ -44,7 +44,7 @@ int vector_test() {
   VectorParams params = {
       .stride = sizeof(unsigned int),
   };
-  Vector my_vec = new_vector(params);
+  unsigned int *my_vec = VEC(unsigned int, 512);
   ASSERT(v_length(my_vec), 0,
          "initialized vector with malformed length actual: %d expected: %d");
   ASSERT(v_capacity(my_vec), 512,
@@ -62,12 +62,12 @@ int vector_test() {
          "expected: %d");
   unsigned int length = v_length(my_vec);
   for (unsigned int o = 0; o < length; ++o) {
-    ASSERT(*(unsigned int *)v_at(my_vec, o), o,
+    ASSERT(my_vec[o], o,
            "vector entries should match expected actual: %d expected: %d");
   }
 
   unsigned int new_stride = sizeof(VectorTestStruct);
-  Vector mapped_vec = v_map(my_vec, f, new_stride);
+  VectorTestStruct *mapped_vec = V_MAP_VEC(my_vec, f, VectorTestStruct);
   ASSERT(v_stride(my_vec), params.stride,
          "vector stride after immutable map should not change actual: %d "
          "expected: %d");
@@ -78,7 +78,7 @@ int vector_test() {
          "mapping full vector with bigger stride than original should not "
          "change its base capacity actual: %d expected: %d");
   for (unsigned int o = 0; o < length; ++o) {
-    VectorTestStruct vts = *(VectorTestStruct *)v_at(mapped_vec, o);
+    VectorTestStruct vts = mapped_vec[o];
     VectorTestStruct expected = {
         .a = o,
         .b = o,
@@ -95,24 +95,24 @@ int vector_test() {
            "d of mapped vector should match actual: %f expected %f");
   }
 
-  my_vec = v_map_m(my_vec, f, new_stride);
+  VectorTestStruct *mutably_mapped = V_MAP_VEC_M(my_vec, f, VectorTestStruct);
   for (unsigned int o = 0; o < length; ++o) {
-    VectorTestStruct expected = *(VectorTestStruct *)v_at(mapped_vec, o);
-    VectorTestStruct actual = *(VectorTestStruct *)v_at(my_vec, o);
+    VectorTestStruct expected = mapped_vec[o];
+    VectorTestStruct actual = mutably_mapped[o];
     ASSERT(actual.a, expected.a,
            "a of mapped vector should match actual: %d expected %d");
     ASSERT(actual.b, expected.b,
            "b of mapped vector should match actual: %d expected %d");
     ASSERT(actual.c, expected.c,
-           "c of mapped vector should match actual: %lf expectedf %lf");
+           "c of mapped vector should match actual: %.32lf expected %.32lf");
     ASSERT(actual.d, expected.d,
            "d of mapped vector should match actual: %f  expected %f ");
   }
 
-  my_vec = v_map_m(my_vec, x, sizeof(unsigned int));
+  my_vec = v_map_m(mutably_mapped, x, sizeof(unsigned int));
   for (unsigned int o = 0; o < length; ++o) {
     unsigned int expected = o + 10;
-    unsigned int actual = *(unsigned int *)v_at(my_vec, o);
+    unsigned int actual = my_vec[o];
     ASSERT(actual, expected,
            "a of mapped vector should match actual: %d expected %d");
   }
@@ -130,8 +130,9 @@ int main() {
   for (int o = 1; test_case.test_fun != NULL; ++o) {
     if (!test_case.test_fun()) {
       printf("%s failed!\n", test_case.name);
+    } else {
+      printf("%s success!\n", test_case.name);
     }
-    printf("%s success!\n", test_case.name);
     test_case = test_cases[o];
   }
   printf("unknown-test-finished...\n");
