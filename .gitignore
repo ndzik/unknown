@@ -1,4 +1,6 @@
 unknown
 unknown_test
 build/
+libs/
+external/
 .cache
