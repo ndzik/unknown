@@ -45,6 +45,9 @@ Vector v_increase_size(Vector vec) {
   Vector new_vec =
       allocator.realloc(&allocator, v_full_vector(vec),
                         2 * capacity * stride + v_base_offset(vec));
+  if (new_vec == NULL) {
+    return NULL;
+  }
   return (Vector) & (((VectorParams *)new_vec)[1]);
 }
 
@@ -96,6 +99,9 @@ Vector v_map_m(Vector vec, MapFunction fun, unsigned int new_stride) {
     VectorParams *tmp = (VectorParams *)allocator.realloc(
         &allocator, v_full_vector(vec),
         v_capacity(vec) * new_stride + v_base_offset(vec));
+    if (tmp == NULL) {
+      return NULL;
+    }
     vec = &tmp[1];
   }
   if (v_stride(vec) < new_stride) {
