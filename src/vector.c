@@ -147,6 +147,7 @@ void v_set_at(Vector vec, unsigned int offset, void *value) {
   memcpy(vec + stride * offset, value, stride);
 }
 
+void v_free(Vector vec) { allocator.free(&allocator, v_full_vector(vec)); }
 unsigned int v_base_offset(Vector vec) { return sizeof(VectorParams); }
 VectorParams *v_params(Vector vec) { return ((VectorParams *)vec) - 1; }
 unsigned int v_length(Vector vec) { return v_params(vec)->length; }

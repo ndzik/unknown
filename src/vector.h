@@ -26,6 +26,7 @@ void v_insert_at(Vector vec, unsigned int offset, void *value);
 void v_set_at(Vector vec, unsigned int offset, void *value);
 void v_set_capacity(Vector vec, unsigned int capacity);
 unsigned int v_stride(Vector vec);
+void v_free(Vector vec);
 Vector v_map(Vector vec, MapFunction fun, unsigned int new_stride);
 Vector v_map_m(Vector vec, MapFunction fun, unsigned int new_stride);
 VectorParams *v_params(Vector vec);
